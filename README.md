@@ -24,8 +24,8 @@ One practical detail is that the script assumes the `data_lake/staging/` directo
 
 ---
 
-### Script 03 — “Curated BI” (as provided)
+### Script 03 — `03_curated_bi.py` (Curated layer + BI summary)
 
-In the code you pasted, the “curated BI” script is functionally identical to Script 02: it reads the raw CSV, performs the same missing-value fill, keeps the same subset of columns, and writes the same staging output file (`data_lake/staging/netflix_titles_staging.csv`). As written, it does not create a curated layer or BI-oriented aggregates, and it overwrites/updates the staging file instead.
+This script builds the curated (“analysis-ready”) outputs from the staging dataset. It reads `data_lake/staging/netflix_titles_staging.csv` and applies a small set of data-quality rules to stabilize key fields. Rows with missing titles are removed. The `release_year` column is coerced to numeric; rows where this conversion fails are dropped, and the remaining values are cast to integers to enforce a consistent type. Missing ratings are replaced with `"Unknown"` to avoid null categories downstream.
 
-If the intended design is a curated BI step, the typical behavior would be to read from the staging file, enforce types and key-field validity, and output curated tables and summary aggregations (e.g., cleaned titles plus country/rating/year summaries). In that case, the report section should match the actual `03_curated_bi.py` that exists in the repository.
+The script produces two curated outputs under `data_lake/curated/`. First, it writes the cleaned title-level table to `data_lake/curated/titles_clean.csv`, preserving the staging schema but with validated `title`, normalized `release_year`, and non-null `rating`. Second, it generates a BI-friendly aggregation by country: it groups by `country`, counts titles via `show_id`, sorts descending by count, and saves the result as `data_lake/curated/country_summary.csv`. The script ends by printing a confirmation message (`CURATED data ready`).
